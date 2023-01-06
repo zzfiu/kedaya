@@ -1,0 +1,17 @@
+
+.DS_Store
+.idea/vcs.xml
+.idea/workspace.xml
+config/config.js
+cookie/jd.js
+extractor/util.js
+*.iml
+.idea/misc.xml
+.idea/modules.xml
+config/jd.js
+qlCreat.js
+config/jdUser.js
+invite/jd_task_farm.json
+config/jd.ini
+package-lock.json
+dump.rdb
