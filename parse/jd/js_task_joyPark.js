@@ -15,7 +15,8 @@ class Main extends Template {
         this.hint = {
             merge: '1 # 执行购买与合成任务',
             interval: '6000 # 运行一个账户后,等待6s后执行下一个账号',
-            delay: "500 # 每次访问url时,等待0.5s"
+            delay: "500 # 每次访问url时,等待0.5s",
+            count: "4 # 连续几次没有获取info数据就停止运行"
         }
     }
 
@@ -32,9 +33,9 @@ class Main extends Template {
     async main(p) {
         let cookie = p.cookie
         let self = this
-        this.dict[p.user] = this.dict[p.user] || {}
-        if (this.n>3) {
-            console.log("连续4次没有获取到info,ip已黑,停止运行")
+        let count = parseInt(this.profile.count || 4)
+        if (this.n>count - 1) {
+            console.log(`连续${count}次没有获取到info,ip已黑,停止运行`)
             this.jump = 1
             return
         }
@@ -158,6 +159,16 @@ class Main extends Template {
                 }
             )
             for (let i of this.haskey(list, 'data')) {
+                if (i.taskType == 'SHARE_INVITE') {
+                    if (this.cookies.help.includes(p.cookie) && this.haskey(base, 'data.invitePin')) {
+                        let shareCode = {
+                            user: p.user,
+                            inviterPin: base.data.invitePin
+                        }
+                        console.log('获取助力码:', shareCode)
+                        this.code.push(shareCode)
+                    }
+                }
                 if (i.taskDoTimes != i.taskLimitTimes) {
                     let ok = 0
                     for (let j = 0; j<i.taskLimitTimes - i.taskDoTimes; j++) {
@@ -181,14 +192,6 @@ class Main extends Template {
                                     if (this.haskey(r, 'errMsg', '参数校验失败') || this.haskey(r, 'errMsg', '领取次数不足')) {
                                         ok = 1
                                     }
-                                }
-                                if (this.cookies.help.includes(p.cookie) && this.haskey(base, 'data.invitePin') && j == 0) {
-                                    let shareCode = {
-                                        user: p.user,
-                                        inviterPin: base.data.invitePin
-                                    }
-                                    console.log('获取助力码:', shareCode)
-                                    this.code.push(shareCode)
                                 }
                                 break
                             case 'BROWSE_CHANNEL':
