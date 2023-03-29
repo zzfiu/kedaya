@@ -97,7 +97,7 @@ class Main extends Template {
                 }
             )
         }, 10000)
-        let inviterPin
+        let inviterPin = ''
         if (this.code.length>0) {
             let help = this.code[(p.index + 1) % this.code.length] || {}
             console.log("正在助力:", help.user)
@@ -117,7 +117,7 @@ class Main extends Template {
         }
         var base = await this.algo.curl({
                 'url': `https://api.m.jd.com/`,
-                'form': `functionId=joyBaseInfo&body={"taskId":"${this.taskId}","inviteType":"1","inviterPin":"${inviterPin}","linkId":"LsQNxL7iWDlXUs6cFl-AAg"}&t=${new Date().getTime()}&appid=activities_platform&client=ios&clientVersion=4.8.0&build=1269&screen=390*844&networkType=wifi&d_brand=iPhone&d_model=iPhone13,3&lang=zh_CN&osVersion=11.4&partner=&eid=eidIb24b812115s9jUHzkyfNSICH4T313nxTSY1B9QqDr0IUV8vdzISUvNGSXxO%2BeCNY01V69ImKsiy4ptOddRzE0E%2F950ionHyQBWNiEguhXNM%2B%2BD5v`,
+                'form': `functionId=joyBaseInfo&body={"taskId":"${inviterPin ? this.taskId : ''}","inviteType":"1","inviterPin":"${inviterPin}","linkId":"LsQNxL7iWDlXUs6cFl-AAg"}&t=${new Date().getTime()}&appid=activities_platform&client=ios&clientVersion=4.8.0&build=1269&screen=390*844&networkType=wifi&d_brand=iPhone&d_model=iPhone13,3&lang=zh_CN&osVersion=11.4&partner=&eid=eidIb24b812115s9jUHzkyfNSICH4T313nxTSY1B9QqDr0IUV8vdzISUvNGSXxO%2BeCNY01V69ImKsiy4ptOddRzE0E%2F950ionHyQBWNiEguhXNM%2B%2BD5v`,
                 cookie,
                 algo: {
                     type: "lite", "version": "3.1", 'appId': '4abce'
