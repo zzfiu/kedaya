@@ -8,7 +8,6 @@ class Main extends Template {
         this.import = ['jdUrl']
         this.task = 'local'
     }
-
     async prepare() {
     }
     async main(p) {
@@ -19,16 +18,15 @@ class Main extends Template {
             cookie,
         }
         )
-        let qas = ''
         console.log(JSON.stringify(notion.messages.list))
         if (notion.messages.list.length > 0) {
             for (let a of notion.messages.list) {
                 for (let b of a.surveyList) {
                     let auto = ''
+                    let qas = ''
                     console.log(p.user, `\n问卷：${b.title},${b.subTitle}\n地址：${b.answerUrl}`)
                     try {
                         if (b.subTitle.includes('1-2京豆') || b.subTitle.includes('2-3京豆')) {
-
                             console.log(`自动答题`)
                             let info = b.answerUrl.split('/')
                             // console.log(info)
@@ -37,64 +35,83 @@ class Main extends Template {
                             // console.log(shortCode,surveyId)
                             let html = await this.curl({
                                 'url': b.answerUrl,
-                                // 'form':``,
                                 cookie,
                             }
                             )
                             // console.log(html)
                             let sasToken = html.match(/sas-token value=(\w+)/)[1]
-                            console.log(sasToken)
+                            // console.log(sasToken)
                             let Detail = await this.curl({
                                 'url': `https://answer.jd.com/answer/getSurveyDetail?surveyId=${surveyId}&shortCode=${shortCode}`,
-                                // 'form':``,
                                 cookie,
                             }
                             )
                             let questions = Detail.messages.jsonStr.pages
                             // console.log(questions)
                             let questionAnswer = []
+                            let flag = 1
                             for (let q of questions) {
                                 // console.log(q)
-                                let question = q.questions[0].title.match(/">(.+)<\/span>/)[1]
+                                if (q.questions.length > 1) {
+                                    flag = 0
+                                    break
+                                }
                                 let id = q.id
-                                let options = q.questions[0].options[Math.floor(Math.random() * (q.questions[0].options.length - 2 - 0) + 0)]
-                                let answername = options.text.match(/">(.+)<\/span>/)[1]
-                                let answerid = options.id
+                                let question = q.questions[0].title.match(/[^<>"]+(?=<\/(?:p|span)>)/)[0]
+                                if (q.questions[0].options) {
+                                    let options = q.questions[0].options[Math.floor(Math.random() * (q.questions[0].options.length - 2 - 0) + 0)]
+                                    var answername = options.text.match(/[^<>"]+(?=<\/(?:p|span)>)/)[0]
+                                    var answerid = options.id
+                                } else {
+                                    var answername = '无'
+                                }
+                                let type = q.questions[0].type
                                 console.log(question, answername)
+                                switch (type) {
+                                    case "SingleChoice":
+                                    case "MultipleChoice":
+                                        var answer = {
+                                            "id": answerid,
+                                            "name": answername
+                                        }
+                                    case "InputQuestion":
+                                        var answer = answername
+                                }
                                 questionAnswer.push({
                                     "id": id,
-                                    "type": "SingleChoice",
+                                    "type": type,
                                     "title": question,
-                                    "answer": {
-                                        "id": answerid,
-                                        "name": answername
-                                    }
+                                    "answer": answer
                                 })
                             }
-                            let body = {
-                                "surveyId": surveyId,
-                                "trapIds": [
-                                ],
-                                "questionAnswer": questionAnswer,
-                                "exception": 0,
-                                "ext1": "",
-                                "ext2": "",
-                                "ext3": "",
-                                "ext4": "",
-                                "ext5": ""
+                            // console.log(questionAnswer)
+                            if (flag) {
+                                let body = {
+                                    "surveyId": surveyId,
+                                    "trapIds": [
+                                    ],
+                                    "questionAnswer": questionAnswer,
+                                    "exception": 0,
+                                    "ext1": "",
+                                    "ext2": "",
+                                    "ext3": "",
+                                    "ext4": "",
+                                    "ext5": ""
+                                }
+                                let sTime = new Date((new Date).getTime() + 8 * 60 * 60 * 1000).toJSON().replace(/T/, " ").substr(0, 19)
+                                let commit = await this.curl({
+                                    'url': `https://answer.jd.com/answer/commitSurveyAnswers`,
+                                    'form': `surveyId=${surveyId}&source=community&content=${this.dumps(body)}&sTime=${sTime}&exception=0&v=0.22386442043050447&sasToken=${sasToken}&ext1=&ext2=&ext3=&ext4=&ext5=`,
+                                    cookie,
+                                }
+                                )
+                                // console.log(commit)
+                                if (commit.result) {
+                                    console.log(commit.messages.msg)
+                                }
+                                auto = commit.messages.msg
                             }
-                            let sTime = new Date((new Date).getTime() + 8 * 60 * 60 * 1000).toJSON().replace(/T/, " ").substr(0, 19)
-                            let commit = await this.curl({
-                                'url': `https://answer.jd.com/answer/commitSurveyAnswers`,
-                                'form': `surveyId=${surveyId}&source=community&content=${this.dumps(body)}&sTime=${sTime}&exception=0&v=0.22386442043050447&sasToken=${sasToken}&ext1=&ext2=&ext3=&ext4=&ext5=`,
-                                cookie,
-                            }
-                            )
-                            console.log(commit)
-                            if (commit.result) {
-                                console.log(commit.messages.msg)
-                            }
-                            auto = commit.messages.msg
+
                         }
                         else {
                             console.log(`尝试判断答案`)
@@ -105,18 +122,27 @@ class Main extends Template {
                             // console.log(shortCode,surveyId)
                             let html = await this.curl({
                                 'url': b.answerUrl,
-                                // 'form':``,
                                 cookie,
                             }
                             )
-                            let sasToken = html.match(/sas-token value=(\w+)/)[1]                                                       // console.log(sas_token)
+                            console.log(info)
                             let Detail = await this.curl({
                                 'url': `https://answer.jd.com/answer/getSurveyDetail?surveyId=${surveyId}&shortCode=${shortCode}`,
-                                // 'form':``,
                                 cookie,
                             }
                             )
-                            if (Detail.messages.jsonStr.pages) {
+                            try {
+                                var messages = Detail.messages
+                                var jsonStr = messages.jsonStr
+                            } catch (e) {
+                                var Detail2 = Detail.replace(/"jsonStr":/, '"jsonStr":""')
+                                Detail = JSON.parse(Detail2)
+                                var messages = Detail.messages
+                                var jsonStr = messages.jsonStr
+                                // console.log(e)
+                            }
+                            let title = Detail.messages.title.replace(/<.?[\w \-=":(,);]+>/g, '')
+                            if (jsonStr) {
                                 let questions = Detail.messages.jsonStr.pages
                                 for (let q of questions) {
                                     for (let i of q.questions) {
