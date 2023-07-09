@@ -29,15 +29,17 @@ class Main extends Template {
         if (this.turnCount == 0) {
             var index = await this.algo.curl({
                     'url': `https://api.m.jd.com/client.action?functionId=plantBeanIndex`,
-                    'form': `body={"monitor_source":"plant_app_plant_index","monitor_refer":"","version":"9.2.4.1"}&client=apple&clientVersion=10.0.4&&appid=ld`,
+                    'form': `body={"monitor_source":"plant_m_plant_index","monitor_refer":"","version":"9.2.4.3"}&client=apple&clientVersion=10.0.4&appid=signed_wh5`,
                     cookie,
                     algo: {
                         'appId': 'd246a',
                         'type': 'web',
                         'version': '3.1'
-                    }
+                    }                                           
                 }
             )
+           // console.log(index.data.taskList)
+           
             if (this.haskey(index, 'code', '3')) {
                 console.log(`没有获取到数据`)
                 return
@@ -56,13 +58,13 @@ class Main extends Template {
             }
             let roundId
             for (let r of this.haskey(index, 'data.roundList')) {
-                if (!roundId && r.dateDesc.includes('本期')) {
+                if (!roundId & r.dateDesc.includes('本期')) {
                     roundId = r.roundId
                 }
                 if (r.awardState == 5) {
                     let reward = await this.curl({
                             'url': `https://api.m.jd.com/client.action?functionId=receivedBean`,
-                            'form': `body={"monitor_refer":"receivedBean","monitor_source":"plant_app_plant_index","roundId":"${r.roundId}","version":"9.2.4.0"}&client=apple&clientVersion=10.0.4&&appid=ld`,
+                            'form': `body={"monitor_refer":"receivedBean","monitor_source":"plant_m_plant_index","roundId":"${r.roundId}","version":"9.2.4.0"}&client=apple&clientVersion=10.0.4&appid=signed_wh5`,
                             cookie
                         }
                     )
@@ -74,22 +76,27 @@ class Main extends Template {
                 else if (r.roundState == 2) {
                     let re = await this.curl({
                             'url': `https://api.m.jd.com/client.action?functionId=receiveNutrients`,
-                            'form': `body={"monitor_refer":"plant_receiveNutrients","monitor_source":"plant_app_plant_index","roundId":"${r.roundId}","version":"9.2.4.0"}&client=apple&clientVersion=10.0.4&&appid=ld`,
+                            'form': `body={"monitor_refer":"plant_receiveNutrients","monitor_source":"plant_m_plant_index","roundId":"${r.roundId}","version":"9.2.4.0"}&client=apple&clientVersion=10.0.4&appid=signed_wh5`,
                             cookie
                         }
                     )
                     for (let j of r.bubbleInfos) {
                         console.log(`获取${j.name}: ${j.nutrNum}`)
-                        let culture = await this.curl({
+                        let culture = await this.algo.curl({
                                 'url': `https://api.m.jd.com/client.action?functionId=cultureBean`,
-                                'form': `body={"monitor_refer":"plant_index","monitor_source":"plant_app_plant_index","roundId":"${r.roundId}","nutrientsType":"${j.nutrientsType}","version":"9.2.4.0"}&client=apple&clientVersion=10.0.4&&appid=ld`,
-                                cookie
+                                'form': `body={"monitor_refer":"plant_index","monitor_source":"plant_m_plant_index","roundId":"${r.roundId}","nutrientsType":"${j.nutrientsType}","version":"9.2.4.3"}&client=apple&clientVersion=10.0.4&appid=signed_wh5`,
+                                cookie,algo: {
+                        'appId': '6a216',
+                        'type': 'web',
+                        'version': '3.1'
+                    }
                             }
                         )
                     }
                 }
             }
             for (let i of this.haskey(index, 'data.taskList')) {
+            	//console.log(`开始做 ${i.taskName}任务`);
                 if (i.isFinished) {
                     console.log(i.taskName, "任务已经完成")
                     if (i.taskType == 2) {
@@ -140,7 +147,7 @@ class Main extends Template {
                             break
                         case 96:
                             let sign = await this.curl({
-                                    'url': `https://wq.jd.com/tjjdsignin/SignedInfo?channel=jx_zdddsq&_t=1663080425215&&_stk=_t%2Cchannel&_=1663080425642&sceneval=2&g_login_type=1&g_ty=ajax&appCode=msc588d6d5`,
+                                    'url': `https://wq.jd.com/tjjdsignin/SignedInfo?channel=jx_zdddsq&_t=1663080425215&_stk=_t%2Cchannel&_=1663080425642&sceneval=2&g_login_type=1&g_ty=ajax&appCode=msc588d6d5`,
                                     algo: {
                                         version: "3.1",
                                         appId: '0f6ed',
@@ -165,7 +172,7 @@ class Main extends Template {
                         case 92:
                             let receiveNutrientsTask = await this.curl(this.modules.jdUrl.app('receiveNutrientsTask', {
                                     "monitor_refer": "plant_receiveNutrientsTask",
-                                    "monitor_source": "plant_app_plant_index",
+                                    "monitor_source": "plant_m_plant_index",
                                     "awardType": "92",
                                     "version": i.version
                                 }, 'post', cookie)
@@ -240,8 +247,9 @@ class Main extends Template {
                             )
                             break
                         case 10:
+                        	
                             let channel = await this.curl({
-                                    'url': `https://api.m.jd.com/client.action?functionId=plantChannelTaskList&body=%7B%7D&uuid=16508022234351805611686.26.1651079180681&appid=ld`,
+                                    'url': `https://api.m.jd.com/client.action?functionId=plantChannelTaskList&body=%7B%7D&uuid=16508022234351805611686.26.1651079180681&appid=signed_wh5`,
                                     // 'form':``,
                                     cookie
                                 }
@@ -250,7 +258,7 @@ class Main extends Template {
                             for (let n of list) {
                                 if (n.taskState == '2') {
                                     let plantChannelNutrientsTask = await this.curl({
-                                            'url': `https://api.m.jd.com/client.action?functionId=plantChannelNutrientsTask&body={"channelTaskId":"${n.channelTaskId}","channelId":"${n.channelId}"}&uuid=16496899654652091525278.275.1651079578494&appid=ld`,
+                                            'url': `https://api.m.jd.com/client.action?functionId=plantChannelNutrientsTask&body={"channelTaskId":"${n.channelTaskId}","channelId":"${n.channelId}"}&uuid=16496899654652091525278.275.1651079578494&appid=signed_wh5`,
                                             // 'form':``,
                                             cookie
                                         }
@@ -269,18 +277,22 @@ class Main extends Template {
                             let shopTaskList =
                                 await this.curl({
                                         'url': `https://api.m.jd.com/client.action?functionId=shopTaskList`,
-                                        'form': `body={"monitor_refer": "plant_receiveNutrients"}&appid=ld`,
+                                        'form': `body={"monitor_source":"plant_m_plant_index","monitor_refer":"plant_shopList","version":"9.2.4.1"}&appid=signed_wh5`,
                                         cookie
                                     }
                                 )
                             var list = [...(this.haskey(shopTaskList, 'data.goodShopList') || []), ...(this.haskey(shopTaskList, 'data.moreShopList') || [])]
                             for (let k of list) {
                                 if (k.taskState == '2') {
-                                    let shopNutrientsTask = await this.curl({
+                                    let shopNutrientsTask = await this.algo.curl({
                                             'url': `https://api.m.jd.com/client.action?functionId=shopNutrientsTask`,
-                                            'form': `body={"monitor_refer":"plant_shopNutrientsTask","version":"9.2.4.0","shopId":"${k.shopId}","shopTaskId":"${k.shopTaskId}"}&appid=ld`,
-                                            cookie
-                                        }
+                                            'form': `body={"monitor_source":"plant_m_plant_index","monitor_refer":"plant_shopNutrientsTask","version":"9.2.4.0","shopId":"${k.shopId}","shopTaskId":"${k.shopTaskId}"}&appid=signed_wh5`,
+                                            cookie,
+        algo: {
+                        'appId': '19c88',
+                        'type': 'web',
+                        'version': '3.1'
+                    }                                }
                                     )
                                     if (this.haskey(shopNutrientsTask, 'data.nutrCount')) {
                                         console.log(this.haskey(shopNutrientsTask, 'data.nutrToast'))
@@ -298,35 +310,52 @@ class Main extends Template {
                             let productTaskList =
                                 await this.curl({
                                         'url': `https://api.m.jd.com/client.action?functionId=productTaskList`,
-                                        'form': `body={"monitor_source":"plant_app_plant_index","monitor_refer":"plant_productTaskList","version":"9.2.4.0"}&appid=ld`,
+                                        'form': `body={"monitor_source":"plant_m_plant_index","monitor_refer":"plant_productTaskList","version":"9.2.4.0"}&appid=signed_wh5`,
                                         cookie
                                     }
                                 )
                             // console.log(productTaskList.data)
                             for (let z of this.haskey(productTaskList, 'data.productInfoList')) {
                                 // console.log(z[0])
-                                let productNutrientsTask = await this.curl({
+                                let productNutrientsTask = await this.algo.curl({
                                         'url': `https://api.m.jd.com/client.action?functionId=productNutrientsTask`,
-                                        'form': `body={"monitor_refer":"plant_productNutrientsTask","monitor_source":"plant_app_plant_index","productTaskId":"${z[0].productTaskId}","skuId":"${z[0].skuId}","version":"9.2.4.0"}&appid=ld`,
-                                        cookie
+                                        'form': `body={"monitor_refer":"plant_productNutrientsTask","monitor_source":"plant_m_plant_index","productTaskId":"${z[0].productTaskId}","skuId":"${z[0].skuId}","version":"9.2.4.0"}&appid=signed_wh5`,
+                                        cookie,
+                                        algo: {
+                        'appId': 'a4e2d',
+                        'type': 'web',
+                        'version': '3.1'
+                    }
                                     }
                                 )
                                 await this.wait(2000)
+                                
+                            
                                 console.log(productNutrientsTask.data.nutrToast || productNutrientsTask.data)
                             }
                             break
                         default:
-                            let s = await this.curl({
+                            let s = await this.algo.curl({
                                     'url': `https://api.m.jd.com/client.action?functionId=receiveNutrientsTask`,
-                                    'form': `body={"monitor_refer":"plant_receiveNutrientsTask","monitor_source":"plant_app_plant_index","awardType":"${i.taskType}","version":"9.2.4.1"}&appid=ld`,
-                                    cookie
+                                    'form': `body={"monitor_refer":"plant_receiveNutrientsTask","monitor_source":"plant_m_plant_index","awardType":"${i.taskType}","version":"9.2.4.1"}&appid=signed_wh5`,
+                                    cookie,
+                                    algo: {
+                        'appId': 'd22ac',
+                        'type': 'web',
+                        'version': '3.1'
+                    }
                                 }
                             )
                             await this.wait(2000)
-                            let ss = await this.curl({
+                            let ss = await this.algo.curl({
                                     'url': `https://api.m.jd.com/client.action?functionId=receiveNutrientsTask`,
-                                    'form': `body={"monitor_refer":"plant_receiveNutrientsTask","monitor_source":"plant_app_plant_index","awardType":"${i.taskType}","version":"9.2.4.1"}&appid=ld`,
-                                    cookie
+                                    'form': `body={"monitor_refer":"plant_receiveNutrientsTask","monitor_source":"plant_m_plant_index","awardType":"${i.taskType}","version":"9.2.4.1"}&appid=signed_wh5`,
+                                    cookie,
+                                    algo: {
+                        'appId': 'd22ac',
+                        'type': 'web',
+                        'version': '3.1'
+                    }
                                 }
                             )
                             console.log(this.haskey(ss, 'data.nutrToast'))
@@ -337,7 +366,7 @@ class Main extends Template {
             }
             let friendList = await this.curl({
                     'url': `https://api.m.jd.com/client.action?functionId=plantFriendList`,
-                    'form': `body={"version":"9.2.4.1","monitor_refer":"plantFriendList","monitor_source":"plant_app_plant_index","pageNum":"1"}&client=apple&clientVersion=10.0.4&&appid=ld`,
+                    'form': `body={"version":"9.2.4.1","monitor_refer":"plantFriendList","monitor_source":"plant_m_plant_index","pageNum":"1"}&client=apple&clientVersion=10.0.4&appid=signed_wh5`,
                     cookie
                 }
             )
@@ -345,7 +374,7 @@ class Main extends Template {
                 if (i.nutrCount) {
                     let collectUserNutr = await this.algo.curl({
                             'url': `https://api.m.jd.com/client.action?functionId=collectUserNutr`,
-                            'form': `body={"monitor_refer":"collectUserNutr","monitor_source":"plant_app_plant_index","roundId":"${roundId}","paradiseUuid":"${i.paradiseUuid}","version":"9.2.4.1"}&client=apple&clientVersion=10.0.4&&appid=ld`,
+                            'form': `body={"monitor_refer":"collectUserNutr","monitor_source":"plant_m_plant_index","roundId":"${roundId}","paradiseUuid":"${i.paradiseUuid}","version":"9.2.4.1"}&client=apple&clientVersion=10.0.4&appid=signed_wh5`,
                             cookie,
                             algo: {
                                 'appId': '14357',
@@ -377,7 +406,7 @@ class Main extends Template {
                     console.log(`正在助力: ${k.user}`)
                     let index = await this.algo.curl({
                             'url': `https://api.m.jd.com/client.action?functionId=plantBeanIndex`,
-                            'form': `body={"plantUuid":"${uuid}","monitor_source":"plant_m_plant_index","monitor_refer":"","version":"9.2.4.1"}&client=apple&clientVersion=10.0.4&appid=ld`,
+                            'form': `body={"plantUuid":"${uuid}","monitor_source":"plant_m_plant_index","monitor_refer":"","version":"9.2.4.1"}&client=apple&clientVersion=10.0.4&appid=signed_wh5`,
                             cookie,
                             algo: {
                                 'appId': 'd246a',
