@@ -22,7 +22,7 @@ cache=1                          # 缓存助力code
 `
     }
 
-    *async prepare() {
+    async prepare() {
         this.algo = new this.modules.jdAlgo({
             appId: "86ba5",
             type: 'app',
