@@ -79,20 +79,32 @@ class Main extends Template {
         let maxDay = this.sum(this.column(p.inviter.continuePrizeRuleList, 'days'))
         let s = await this.curl({
                 'url': `https://api.m.jd.com/api?appid=interCenter_shopSign&loginType=2&functionId=interact_center_shopSign_getSignRecord&body={"token":"${p.inviter.token}","venderId":${p.inviter.venderId},"activityId":${p.inviter.activityId},"type":56,"actionType":7}&jsonp=jsonp1004`,
-                cookie
-            }
-        )
+                        // 'form':``,
+                        cookie,
+                        algo: {
+                            type: "main",
+                            version: "4.1",
+                            appId: 'f2b1d'
+                        }
+                    }
+                )
         let days = this.haskey(s, 'data.days')
         if (days>=maxDay) {
             console.log(`签到已满${maxDay}天,跳出签到`, p.inviter.token, `https://shop.m.jd.com/?venderId=${p.inviter.venderId}`)
             this.plan.except.push(p.inviter.token)
         }
         else {
-            let signIn = await this.curl({
-                    'url': `https://api.m.jd.com/api?appid=interCenter_shopSign&loginType=2&functionId=interact_center_shopSign_signCollectGift&body={"token":"${p.inviter.token}","venderId":${p.inviter.venderId},"activityId":${p.inviter.activityId},"type":56,"actionType":7}`,
-                    cookie
-                }
-            )
+            let list = await this.algo.curl({
+                    'url': `https://api.m.jd.com/api?appid=interCenter_shopSign&t=${this.timestamp}&loginType=2&functionId=interact_center_shopSign_signCollectGift&body={"token":"${p.inviter.token}","venderId":${p.inviter.venderId},"activityId":${p.inviter.activityId},"type":56,"actionType":7}`,
+                        // 'form':``,
+                        cookie,
+                        algo: {
+                            type: "main",
+                            version: "4.1",
+                            appId: 'f2b1d'
+                        }
+                    }
+                )
             if (!signIn.success && this.haskey(signIn, 'msg').includes('未登录')) {
                 console.log(signIn.msg)
                 this.complete.push(p.index)
