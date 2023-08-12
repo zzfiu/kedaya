@@ -548,7 +548,7 @@ cache=1                          # 缓存助力code
                 break;
             }
         }
-        /*let salveHelpAddWater = 0;
+        let salveHelpAddWater = 0;
         let remainTimes = 3;//今日剩余助力次数,默认3次（京东农场每人每天3次助力机会）。
         let helpSuccessPeoples = '';//成功助力好友
         let helpCode = this.profile.helpRandom ? this.random(this.code, this.code.length) : this.code
@@ -601,7 +601,7 @@ cache=1                          # 缓存助力code
             else {
                 console.log(`助力失败: ${JSON.stringify(s)}`);
             }
-        }*/
+        }
         // 天天红包
         let red = await this.curl({
                 'url': `https://api.m.jd.com/client.action?functionId=initForTurntableFarm&body={"version":19,"channel":1}&appid=signed_wh5&client=iOS&clientVersion=10.2.4`,
@@ -875,7 +875,7 @@ cache=1                          # 缓存助力code
         }
     }
 
-    /*async extra() {
+    async extra() {
         console.log(`此次运行助力码:`)
         console.log(this.dumps(Object.values(this.dict)))
         if (this.profile.cache) {
@@ -902,7 +902,7 @@ cache=1                          # 缓存助力code
             if (error) return console.log("写入化失败" + error.message);
             console.log("东东农场好友列表写入成功");
         })
-    }*/
+    }
 }
 
 module.exports = Main;
