@@ -8,7 +8,7 @@ class Main extends Template {
         // this.thread = 2
         this.task = 'local'
         this.import = ['fs', 'jdAlgo']
-        this.delay = 1000
+        this.delay = 3000
         this.readme = `[jd_task_farm]
 #signCard=1                   # 加签卡
 #doubleCard=1             # 双倍水滴卡
